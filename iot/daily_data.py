@@ -1,5 +1,45 @@
+import time
 import pandas as pd
 import numpy as np
+from paho.mqtt import client as mqtt_client
+from dotenv import load_dotenv # type: ignore
+import os
+
+load_dotenv()
+
+broker = os.getenv("MQTT_BROKER", "localhost")
+port = int(os.getenv("MQTT_PORT", 1883))
+topic = os.getenv("MQTT_TOPIC", "python/mqtt")
+client_id = f'python-mqtt-{np.random.randint(0, 1000)}'
+username = os.getenv("MQTT_USERNAME", "")
+password = os.getenv("MQTT_PASSWORD", "")
+
+def connect_mqtt():
+    def on_connect(client, userdata, flags, rc):
+        if rc == 0:
+            print("Connected to MQTT Broker!")
+        else:
+            print(f"Failed to connect, return code {rc}\n")
+
+    client = mqtt_client.Client(mqtt_client.CallbackAPIVersion.VERSION1, client_id="Simulated_Sensors")
+    client.username_pw_set(username, password)
+    client.on_connect = on_connect
+    client.connect(broker, port)
+    return client
+
+def publish(client, msg):
+    msg_count = 0
+    while True:
+        time.sleep(1)
+        result = client.publish(topic, msg)
+        status = result[0]
+        if status == 0:
+            print(f"Send `{msg}` to topic `{topic}`")
+        else:
+            print(f"Failed to send message to topic {topic}")
+        msg_count += 1
+        if msg_count > 5:
+            break
 
 def generate_industrial_fleet_data(num_rows=100000, num_motors=25, seed=42):
     """
@@ -79,7 +119,7 @@ def generate_industrial_fleet_data(num_rows=100000, num_motors=25, seed=42):
     return df
 
 
-df_industrial = generate_industrial_fleet_data(num_rows=100000, num_motors=25)
+df_industrial = generate_industrial_fleet_data(num_rows=2000, num_motors=25)
 
 print(f"\nFinal Dataset Shape: {df_industrial.shape[0]} rows × {df_industrial.shape[1]} columns")
 
@@ -87,4 +127,18 @@ m3_nulls = df_industrial[df_industrial['m03_current_draw_a'].isna()]
 if not m3_nulls.empty:
     sample_idx = m3_nulls.index[0]
     print(df_industrial.loc[sample_idx-2:sample_idx+2, ['timestamp_ms', 'm03_current_draw_a', 'm03_stator_temp_c', 'm04_stator_temp_c']])
-    df_industrial.to_csv("synthetic_industrial_fleet_data.csv", index=False)
+
+df_industrial.to_csv("synthetic_industrial_fleet_data.csv", index=False)
+
+client = connect_mqtt()
+client.loop_start()
+
+for line in df_industrial:
+    publish(client, line)
+    time.sleep(0.6) # Simulate delay between messages
+
+if client.is_connected():
+    client.loop_stop()
+    client.disconnect()
+
+print("Data published to MQTT broker and connection closed.")
