@@ -1,60 +1,48 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import VibrationGauge from './vibration_gauge';
 
-import { fn } from 'storybook/test';
-import BasicGauges from './vibration_gauge';
-
-// More on how to set up stories at: https://storybook.js.org/docs/writing-stories#default-export
 const meta = {
-  title: 'Example/BasicGauges',
-  component: BasicGauges,
+  title: 'Industrial/VibrationGauge', 
+  component: VibrationGauge,
   parameters: {
-    // Optional parameter to center the component in the Canvas. More info: https://storybook.js.org/docs/configure/story-layout
     layout: 'centered',
   },
-  // This component will have an automatically generated Autodocs entry: https://storybook.js.org/docs/writing-docs/autodocs
   tags: ['autodocs'],
-  // More on argTypes: https://storybook.js.org/docs/api/argtypes
   argTypes: {
-    backgroundColor: { control: 'color' },
+    value: { control: { type: 'range', min: 0, max: 200, step: 1 } },
+    color: { control: 'color' },
   },
-  // Use `fn` to spy on the onClick arg, which will appear in the actions panel once invoked: https://storybook.js.org/docs/essentials/actions#story-args
-  args: { onClick: fn() },
-} satisfies Meta<typeof BasicGauges>;
+} satisfies Meta<typeof VibrationGauge>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-// More on writing stories with args: https://storybook.js.org/docs/writing-stories/args
-export const Primary: Story = {
+// Estado padrão de operação
+export const Normal: Story = {
   args: {
-    primary: true,
-    label: 'BasicGauges',
+    value: 30,
+    max: 100,
+    label: 'Motor Principal - RPM',
+    color: '#2e7d32',
   },
 };
 
-export const Secondary: Story = {
+// Estado de Alerta (Vibração alta)
+export const Warning: Story = {
   args: {
-    label: 'BasicGauges',
+    value: 85,
+    max: 100,
+    label: 'Ventilador Sul - Vibração Alta',
+    color: '#ed6c02',
   },
 };
 
-export const Large: Story = {
+// Estado Crítico / Falha
+export const Critical: Story = {
   args: {
-    size: 'large',
-    label: 'BasicGauges',
+    value: 115,
+    max: 120,
+    label: 'Bomba de Resfriamento - CRÍTICO',
+    color: '#d32f2f', 
   },
-};
-
-export const Small: Story = {
-  args: {
-    size: 'small',
-    label: 'BasicGauges',
-  },
-};
-
-export const Testy: Story = {
-  args: {
-    primary: false,
-    label: "BasicGauges"
-  }
 };
