@@ -11,3 +11,14 @@ flowchart TD
     C{Paho MQTT}
     C <--> D[React]
 ```
+
+
+src/
+├── components/
+│   ├── Gauge/
+│   │   ├── Gauge.tsx
+│   │   ├── Gauge.stories.tsx  <-- Value Simulations
+│   │   └── Gauge.styles.ts
+│   ├── MachineCard/
+│   │   ├── MachineCard.tsx
+│   │   └── MachineCard.stories.tsx <-- "play functions" for simulating updates
