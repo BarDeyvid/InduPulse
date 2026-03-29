@@ -58,3 +58,4 @@ export default function MachineCard({
         </Box>
     );
 }
+// Mudanca boba pro git
