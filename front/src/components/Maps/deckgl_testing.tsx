@@ -1,9 +1,9 @@
 import { DeckGL, ZoomWidget } from '@deck.gl/react';
-import { MapView, FirstPersonView } from '@deck.gl/core';
-import type { MapViewState, FirstPersonViewState } from '@deck.gl/core';
+import { MapView } from '@deck.gl/core'; 
+import type { MapViewState } from '@deck.gl/core'; 
 import { LineLayer } from '@deck.gl/layers';
 
-import { Map } from 'react-map-gl/mapbox'; 
+import { Map, Layer } from 'react-map-gl/mapbox'; 
 import mapboxgl from 'mapbox-gl'; 
 import 'mapbox-gl/dist/mapbox-gl.css';
 
@@ -14,24 +14,12 @@ interface MyData {
   to: [number, number];
 }
 
-const INITIAL_VIEW_STATE: {
-  map: MapViewState;
-  'first-person': FirstPersonViewState;
-} = {
-  map: {
-    longitude: -49.09402620245169,
-    latitude: -26.478484049936593,
-    zoom: 15,
-    pitch: 45,
-    bearing: 185
-  },
-  'first-person': {
-    longitude: -49.09402620245169,
-    latitude: -26.478484049936593,
-    position: [0, 0, 50], // Sobe a câmera para 50m
-    bearing: 0,
-    pitch: 20 // Inclina um pouco para baixo para tentar ver a linha
-  }
+const INITIAL_VIEW_STATE: MapViewState = {
+  longitude: -49.09402620245169,
+  latitude: -26.478484049936593,
+  zoom: 17.5,
+  pitch: 65, 
+  bearing: 185
 };
 
 export default function DGMap() {
@@ -47,8 +35,7 @@ export default function DGMap() {
   ];
 
   const views = [
-    new MapView({ id: 'map', width: '50%', controller: true }),
-    new FirstPersonView({ id: 'first-person', width: '50%', x: '50%', controller: true, fovy: 50 })
+    new MapView({ id: 'map', width: '100%', controller: true })
   ];
 
   return (
@@ -56,13 +43,28 @@ export default function DGMap() {
       <DeckGL
         layers={layers}
         views={views}
-        initialViewState={INITIAL_VIEW_STATE}
+        initialViewState={{ map: INITIAL_VIEW_STATE }}
       >
         <Map 
           mapLib={mapboxgl} 
           mapboxAccessToken={MAPBOX_TOKEN} 
           mapStyle="mapbox://styles/mapbox/dark-v11" 
-        />
+        >
+          <Layer 
+            id="3d-buildings"
+            source="composite"
+            source-layer="building"
+            filter={['==', 'extrude', 'true']}
+            type="fill-extrusion"
+            minzoom={15}
+            paint={{
+              'fill-extrusion-color': '#444444', 
+              'fill-extrusion-height': ['get', 'height'],
+              'fill-extrusion-base': ['get', 'min_height'],
+              'fill-extrusion-opacity': 0.6
+            }}
+          />
+        </Map>
 
         <ZoomWidget />
       </DeckGL>
